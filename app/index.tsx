@@ -8,11 +8,13 @@ import { DayView } from '../src/components/DayView';
 import { EventFormModal } from '../src/components/EventFormModal';
 import { CalendarFormModal } from '../src/components/CalendarFormModal';
 import { useCalendar } from '../src/contexts/CalendarContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 import { Event, Calendar } from '../src/types';
 
 export default function CalendarScreen() {
-  const { state } = useCalendar();
+  const { state, actions } = useCalendar();
   const { viewMode } = state;
+  const { colors } = useTheme();
 
   // Modal states
   const [eventModalVisible, setEventModalVisible] = useState(false);
@@ -52,6 +54,11 @@ export default function CalendarScreen() {
     setEventModalVisible(true);
   };
 
+  const handleDateNumberPress = (date: Date) => {
+    actions.setSelectedDate(date);
+    actions.setViewMode('day');
+  };
+
   const handleAddCalendar = () => {
     setSelectedCalendar(undefined);
     setCalendarModalVisible(true);
@@ -81,6 +88,7 @@ export default function CalendarScreen() {
           <MonthView
             onEventPress={handleEventPress}
             onDatePress={handleDatePress}
+            onDateNumberPress={handleDateNumberPress}
           />
         );
       case 'week':
@@ -102,13 +110,14 @@ export default function CalendarScreen() {
           <MonthView
             onEventPress={handleEventPress}
             onDatePress={handleDatePress}
+            onDateNumberPress={handleDateNumberPress}
           />
         );
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CalendarHeader
         onAddEvent={handleAddEvent}
       />
@@ -147,7 +156,6 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   contentContainer: {
     flex: 1,

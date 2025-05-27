@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
   Platform,
@@ -12,8 +11,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { DrawerActions } from "@react-navigation/native";
 import { useCalendar } from "../contexts/CalendarContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { formatDisplayDate, navigateDate } from "../utils/dateUtils";
 import { ViewMode } from "../types";
+import { HEADER_HEIGHT } from "../utils/constants";
+import { ViewModeDropdown } from "./ViewModeDropdown";
+import { PlatformButton } from "./PlatformButton";
 
 interface CalendarHeaderProps {
   onAddEvent: () => void;
@@ -24,6 +27,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 }) => {
   const { state, actions } = useCalendar();
   const { selectedDate, viewMode } = state;
+  const { colors, isDark, setTheme, theme } = useTheme();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === "web" && width >= 768;
@@ -70,6 +74,29 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     actions.setViewMode(mode);
   };
 
+  const handleThemeToggle = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
+  };
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light':
+        return 'sunny';
+      case 'dark':
+        return 'moon';
+      case 'system':
+        return 'phone-portrait';
+      default:
+        return 'sunny';
+    }
+  };
+
   const getDateDisplayText = () => {
     switch (viewMode) {
       case "day":
@@ -87,7 +114,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
       {/* Work in Progress Banner */}
       <View style={styles.wipBanner}>
         <View style={styles.wipOverlay} />
@@ -106,66 +133,54 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       <View style={styles.singleRow}>
         {/* Left Section - Hamburger and Title */}
         <View style={styles.leftSection}>
-          <TouchableOpacity
+          <PlatformButton
             style={styles.hamburgerMenu}
             onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
           >
-            <Ionicons name="menu" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={[styles.title, isVerySmall && styles.titleSmall]}>Calendar</Text>
+            <Ionicons name="menu" size={24} color={colors.text} />
+          </PlatformButton>
+          <Text style={[styles.title, isVerySmall && styles.titleSmall, { color: colors.text }]}>Calendar</Text>
         </View>
 
         {/* Center Section - Date Navigation (hidden on mobile) */}
         {!isMobile && (
           <View style={styles.centerSection}>
-            <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-              <Ionicons name="chevron-back" size={20} color="#007AFF" />
-            </TouchableOpacity>
+            <PlatformButton style={styles.navButton} onPress={handlePrevious}>
+              <Ionicons name="chevron-back" size={20} color={colors.text} />
+            </PlatformButton>
 
-            <TouchableOpacity style={styles.dateContainer} onPress={handleToday}>
-              <Text style={styles.dateText}>{getDateDisplayText()}</Text>
-            </TouchableOpacity>
+            <PlatformButton style={styles.dateContainer} onPress={handleToday}>
+              <Text style={[styles.dateText, { color: colors.text }]}>{getDateDisplayText()}</Text>
+            </PlatformButton>
 
-            <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-              <Ionicons name="chevron-forward" size={20} color="#007AFF" />
-            </TouchableOpacity>
+            <PlatformButton style={styles.navButton} onPress={handleNext}>
+              <Ionicons name="chevron-forward" size={20} color={colors.text} />
+            </PlatformButton>
           </View>
         )}
 
-        {/* Right Section - Today, Plus, and View Mode */}
+        {/* Right Section - Today, Plus, Theme, and View Mode */}
         <View style={styles.rightSection}>
           {!isVerySmall && (
-            <TouchableOpacity style={styles.todayButton} onPress={handleToday}>
-              <Text style={styles.todayButtonText}>Today</Text>
-            </TouchableOpacity>
+            <PlatformButton style={[styles.todayButton, { borderColor: colors.border }]} onPress={handleToday}>
+              <Text style={[styles.todayButtonText, { color: colors.text }]}>Today</Text>
+            </PlatformButton>
           )}
           
-          <TouchableOpacity style={styles.actionButton} onPress={onAddEvent}>
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
+          <PlatformButton style={styles.actionButton} onPress={handleThemeToggle}>
+            <Ionicons name={getThemeIcon()} size={20} color={colors.text} />
+          </PlatformButton>
+          
+          <PlatformButton style={styles.actionButton} onPress={onAddEvent}>
+            <Ionicons name="add" size={24} color={colors.text} />
+          </PlatformButton>
 
-          {/* View Mode Selector */}
-          <View style={styles.viewModeContainer}>
-            {(["day", "week", "month"] as ViewMode[]).map((mode) => (
-              <TouchableOpacity
-                key={mode}
-                style={[
-                  styles.viewModeButton,
-                  viewMode === mode && styles.viewModeButtonActive,
-                ]}
-                onPress={() => handleViewModeChange(mode)}
-              >
-                <Text
-                  style={[
-                    styles.viewModeText,
-                    viewMode === mode && styles.viewModeTextActive,
-                  ]}
-                >
-                  {isMobile ? mode.charAt(0).toUpperCase() : mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* View Mode Dropdown */}
+          <ViewModeDropdown
+            selectedMode={viewMode}
+            onModeChange={handleViewModeChange}
+            isMobile={isMobile}
+          />
         </View>
       </View>
     </View>
@@ -174,12 +189,10 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 50,
+    paddingTop: 80, // Increased to account for the banner
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -188,6 +201,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+    height: HEADER_HEIGHT,
+    zIndex: 99999,
   },
   singleRow: {
     flexDirection: "row",
@@ -203,13 +218,11 @@ const styles = StyleSheet.create({
   hamburgerMenu: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: "#F8F9FA",
     zIndex: 1000,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1A1A1A",
     marginLeft: 16,
   },
   titleSmall: {
@@ -222,9 +235,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   navButton: {
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: "#F8F9FA",
+    padding: 8,
+    borderRadius: 8,
   },
   dateContainer: {
     alignItems: "center",
@@ -234,7 +246,6 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1A1A1A",
   },
   rightSection: {
     flexDirection: "row",
@@ -244,47 +255,21 @@ const styles = StyleSheet.create({
   },
   todayButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     marginRight: 8,
-    borderRadius: 6,
-    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
   },
   todayButtonText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#007AFF",
   },
   actionButton: {
-    padding: 6,
-    marginLeft: 6,
-    borderRadius: 6,
-    backgroundColor: "#F8F9FA",
-  },
-  viewModeContainer: {
-    flexDirection: "row",
-    backgroundColor: "#F8F9FA",
-    borderRadius: 6,
-    padding: 2,
+    padding: 8,
     marginLeft: 8,
+    borderRadius: 8,
   },
-  viewModeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  viewModeButtonActive: {
-    backgroundColor: "#007AFF",
-  },
-  viewModeText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#666666",
-  },
-  viewModeTextActive: {
-    color: "#FFFFFF",
-  },
+
   wipBanner: {
     position: "absolute",
     top: 0,

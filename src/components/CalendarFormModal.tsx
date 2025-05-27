@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Modal,
   ScrollView,
@@ -13,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCalendar } from '../contexts/CalendarContext';
 import { Calendar, CalendarFormData } from '../types';
 import { CALENDAR_COLORS, getRandomColor } from '../utils/helpers';
+import { PlatformButton } from './PlatformButton';
 
 interface CalendarFormModalProps {
   visible: boolean;
@@ -115,7 +115,7 @@ export const CalendarFormModal: React.FC<CalendarFormModalProps> = ({
     const isSelected = formData.color === color;
     
     return (
-      <TouchableOpacity
+      <PlatformButton
         key={color}
         style={[
           styles.colorOption,
@@ -127,7 +127,7 @@ export const CalendarFormModal: React.FC<CalendarFormModalProps> = ({
         {isSelected && (
           <Ionicons name="checkmark" size={20} color="#FFFFFF" />
         )}
-      </TouchableOpacity>
+      </PlatformButton>
     );
   };
 
@@ -135,15 +135,15 @@ export const CalendarFormModal: React.FC<CalendarFormModalProps> = ({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
+          <PlatformButton onPress={onClose}>
             <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
+          </PlatformButton>
           <Text style={styles.title}>
             {calendar ? 'Edit Calendar' : 'New Calendar'}
           </Text>
-          <TouchableOpacity onPress={handleSave}>
+          <PlatformButton onPress={handleSave}>
             <Text style={styles.saveButton}>Save</Text>
-          </TouchableOpacity>
+          </PlatformButton>
         </View>
 
         <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
@@ -180,10 +180,10 @@ export const CalendarFormModal: React.FC<CalendarFormModalProps> = ({
 
           {/* Delete Button (for existing calendars) */}
           {calendar && !calendar.isDefault && (
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <PlatformButton style={styles.deleteButton} onPress={handleDelete}>
               <Ionicons name="trash" size={20} color="#FF3B30" />
               <Text style={styles.deleteButtonText}>Delete Calendar</Text>
-            </TouchableOpacity>
+            </PlatformButton>
           )}
 
           {calendar?.isDefault && (

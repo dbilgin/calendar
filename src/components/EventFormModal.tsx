@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Modal,
   ScrollView,
@@ -12,8 +11,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCalendar } from '../contexts/CalendarContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Event, EventFormData } from '../types';
 import { formatDate, formatTime, createDateFromTimeString } from '../utils/dateUtils';
+import { PlatformButton } from './PlatformButton';
 
 interface EventFormModalProps {
   visible: boolean;
@@ -32,6 +33,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 }) => {
   const { state, actions } = useCalendar();
   const { calendars } = state;
+  const { colors } = useTheme();
 
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
@@ -226,48 +228,50 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+          <PlatformButton onPress={onClose}>
+            <Text style={[styles.cancelButton, { color: colors.primary }]}>Cancel</Text>
+          </PlatformButton>
+          <Text style={[styles.title, { color: colors.text }]}>
             {event ? 'Edit Event' : 'New Event'}
           </Text>
-          <TouchableOpacity onPress={handleSave}>
-            <Text style={styles.saveButton}>Save</Text>
-          </TouchableOpacity>
+          <PlatformButton onPress={handleSave}>
+            <Text style={[styles.saveButton, { color: colors.primary }]}>Save</Text>
+          </PlatformButton>
         </View>
 
         <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
           {/* Title */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Title</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.title}
               onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
               placeholder="Event title"
+              placeholderTextColor={colors.textSecondary}
               autoFocus
             />
           </View>
 
           {/* Calendar Selection */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Calendar</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Calendar</Text>
             <View style={styles.calendarSelector}>
               {calendars.map((calendar) => (
-                <TouchableOpacity
+                <PlatformButton
                   key={calendar.id}
                   style={[
                     styles.calendarOption,
-                    formData.calendarId === calendar.id && styles.calendarOptionSelected,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    formData.calendarId === calendar.id && { backgroundColor: colors.primary + '20', borderColor: colors.primary },
                   ]}
                   onPress={() => setFormData(prev => ({ ...prev, calendarId: calendar.id }))}
                 >
                   <View style={[styles.calendarColor, { backgroundColor: calendar.color }]} />
-                  <Text style={styles.calendarName}>{calendar.name}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.calendarName, { color: colors.text }]}>{calendar.name}</Text>
+                </PlatformButton>
               ))}
             </View>
           </View>
@@ -275,11 +279,11 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           {/* All Day Toggle */}
           <View style={styles.formGroup}>
             <View style={styles.switchRow}>
-              <Text style={styles.label}>All Day</Text>
+              <Text style={[styles.label, { color: colors.text }]}>All Day</Text>
               <Switch
                 value={formData.isAllDay}
                 onValueChange={handleAllDayToggle}
-                trackColor={{ false: '#E5E5E5', true: '#007AFF' }}
+                trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -287,20 +291,22 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
           {/* Start Date/Time */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Starts</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Starts</Text>
             <View style={styles.dateTimeRow}>
               <TextInput
-                style={[styles.input, styles.dateInput]}
+                style={[styles.input, styles.dateInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 value={startDateString}
                 onChangeText={setStartDateString}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textSecondary}
               />
               {!formData.isAllDay && (
                 <TextInput
-                  style={[styles.input, styles.timeInput]}
+                  style={[styles.input, styles.timeInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   value={startTimeString}
                   onChangeText={setStartTimeString}
                   placeholder="HH:MM"
+                  placeholderTextColor={colors.textSecondary}
                 />
               )}
             </View>
@@ -308,20 +314,22 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
           {/* End Date/Time */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Ends</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Ends</Text>
             <View style={styles.dateTimeRow}>
               <TextInput
-                style={[styles.input, styles.dateInput]}
+                style={[styles.input, styles.dateInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 value={endDateString}
                 onChangeText={setEndDateString}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textSecondary}
               />
               {!formData.isAllDay && (
                 <TextInput
-                  style={[styles.input, styles.timeInput]}
+                  style={[styles.input, styles.timeInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   value={endTimeString}
                   onChangeText={setEndTimeString}
                   placeholder="HH:MM"
+                  placeholderTextColor={colors.textSecondary}
                 />
               )}
             </View>
@@ -329,23 +337,25 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
           {/* Location */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Location</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Location</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.location}
               onChangeText={(text) => setFormData(prev => ({ ...prev, location: text }))}
               placeholder="Add location"
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
 
           {/* Description */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Description</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Description</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.description}
               onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
               placeholder="Add description"
+              placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -354,10 +364,10 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
           {/* Delete Button (for existing events) */}
           {event && (
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <PlatformButton style={styles.deleteButton} onPress={handleDelete}>
               <Ionicons name="trash" size={20} color="#FF3B30" />
               <Text style={styles.deleteButtonText}>Delete Event</Text>
-            </TouchableOpacity>
+            </PlatformButton>
           )}
         </ScrollView>
       </View>
@@ -368,7 +378,6 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -377,22 +386,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
     paddingTop: 50,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1A1A1A',
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
   },
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
   },
   form: {
     flex: 1,
@@ -404,17 +409,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E5E5',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
   },
   textArea: {
     height: 100,
@@ -429,11 +431,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  calendarOptionSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: '#F0F8FF',
   },
   calendarColor: {
     width: 16,
@@ -443,7 +440,6 @@ const styles = StyleSheet.create({
   },
   calendarName: {
     fontSize: 16,
-    color: '#1A1A1A',
   },
   switchRow: {
     flexDirection: 'row',

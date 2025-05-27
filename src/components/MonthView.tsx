@@ -1,27 +1,32 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { useCalendar } from '../contexts/CalendarContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   getCalendarGrid, 
   getEventsForDate, 
   formatDate, 
+  formatDisplayTime,
   isSameMonth,
   isSameDay 
 } from '../utils/dateUtils';
 import { Event } from '../types';
+import { PlatformButton } from './PlatformButton';
 
 interface MonthViewProps {
   onEventPress: (event: Event) => void;
   onDatePress: (date: Date) => void;
+  onDateNumberPress?: (date: Date) => void;
   overrideDate?: Date;
 }
 
 
 
-export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress, overrideDate }) => {
+export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress, onDateNumberPress, overrideDate }) => {
   const { state } = useCalendar();
   const { selectedDate: contextDate, events, calendars, selectedCalendarIds } = state;
   const selectedDate = overrideDate || contextDate;
+  const { colors } = useTheme();
   const { height } = useWindowDimensions();
 
   const calendarDays = getCalendarGrid(selectedDate);
@@ -43,7 +48,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress,
     return (
       <View style={styles.eventsContainer}>
         {eventsToShow.map((event, index) => (
-          <TouchableOpacity
+          <PlatformButton
             key={event.id}
             style={[
               styles.eventDot,
@@ -52,9 +57,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress,
             onPress={() => onEventPress(event)}
           >
             <Text style={styles.eventText} numberOfLines={1}>
+              {!event.isAllDay && `${formatDisplayTime(event.startDate)} `}
               {event.title}
             </Text>
-          </TouchableOpacity>
+          </PlatformButton>
         ))}
         {remainingCount > 0 && (
           <Text style={styles.moreEventsText}>
@@ -71,43 +77,50 @@ export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress,
     const dayEvents = getEventsForDate(visibleEvents, date);
 
     return (
-      <TouchableOpacity
+      <PlatformButton
         key={index}
         style={[
           styles.dayContainer,
-          !isCurrentMonth && styles.dayContainerOtherMonth,
-          isToday && styles.dayContainerToday,
+          { backgroundColor: colors.background, borderColor: colors.border },
+          !isCurrentMonth && { backgroundColor: colors.surface },
+          isToday && { backgroundColor: colors.primary + '20' },
         ]}
         onPress={() => onDatePress(date)}
       >
-        <Text
-          style={[
-            styles.dayText,
-            !isCurrentMonth && styles.dayTextOtherMonth,
-            isToday && styles.dayTextToday,
-          ]}
+        <PlatformButton
+          style={styles.dateNumberContainer}
+          onPress={() => onDateNumberPress?.(date)}
         >
-          {date.getDate()}
-        </Text>
+          <Text
+            style={[
+              styles.dayText,
+              { color: colors.text },
+              !isCurrentMonth && { color: colors.textSecondary },
+              isToday && { color: colors.primary, fontWeight: 'bold' },
+            ]}
+          >
+            {date.getDate()}
+          </Text>
+        </PlatformButton>
         {dayEvents.length > 0 && (
           <View style={styles.eventIndicator}>
             <Text style={styles.eventCount}>{dayEvents.length}</Text>
           </View>
         )}
         {renderDayEvents(date)}
-      </TouchableOpacity>
+      </PlatformButton>
     );
   };
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Week day headers */}
-      <View style={styles.weekHeader}>
+      <View style={[styles.weekHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         {weekDays.map((day) => (
           <View key={day} style={styles.weekDayContainer}>
-            <Text style={styles.weekDayText}>{day}</Text>
+            <Text style={[styles.weekDayText, { color: colors.textSecondary }]}>{day}</Text>
           </View>
         ))}
       </View>
@@ -123,15 +136,12 @@ export const MonthView: React.FC<MonthViewProps> = ({ onEventPress, onDatePress,
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     minHeight: '100%', // Ensure full height on web
   },
   weekHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
   },
   weekDayContainer: {
     flex: 1,
@@ -140,7 +150,6 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
   },
   calendarGrid: {
     flex: 1,
@@ -151,36 +160,22 @@ const styles = StyleSheet.create({
     width: '14.28%', // 100% / 7 days
     height: '16.66%', // 100% / 6 rows
     borderWidth: 0.5,
-    borderColor: '#E5E5E5',
     padding: 4,
-    backgroundColor: '#FFFFFF',
   },
-  dayContainerOtherMonth: {
-    backgroundColor: '#F8F9FA',
-  },
-  dayContainerToday: {
-    backgroundColor: '#E3F2FD',
-  },
-  dayContainerSelected: {
-    backgroundColor: '#BBDEFB',
+  dateNumberContainer: {
+    width: '100%',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    minWidth: 24,
+    alignItems: 'center',
   },
   dayText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 4,
-  },
-  dayTextOtherMonth: {
-    color: '#CCCCCC',
-  },
-  dayTextToday: {
-    color: '#007AFF',
-    fontWeight: 'bold',
-  },
-  dayTextSelected: {
-    color: '#007AFF',
-    fontWeight: 'bold',
   },
   eventIndicator: {
     position: 'absolute',

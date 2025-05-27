@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   Switch,
@@ -10,12 +9,15 @@ import {
 import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import { useCalendar } from '../contexts/CalendarContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Calendar } from '../types';
 import { CalendarFormModal } from './CalendarFormModal';
+import { PlatformButton } from './PlatformButton';
 
 export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   const { state, actions } = useCalendar();
   const { calendars } = state;
+  const { colors } = useTheme();
   
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [selectedCalendar, setSelectedCalendar] = useState<Calendar | undefined>();
@@ -55,17 +57,17 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
             style={styles.calendarSwitch}
           />
           <View style={[styles.calendarColor, { backgroundColor: calendar.color }]} />
-          <TouchableOpacity
+          <PlatformButton
             style={styles.calendarNameContainer}
             onPress={() => handleEditCalendar(calendar)}
           >
-            <Text style={styles.calendarName} numberOfLines={1}>
+            <Text style={[styles.calendarName, { color: colors.text }]} numberOfLines={1}>
               {calendar.name}
             </Text>
             {calendar.isDefault && (
-              <Text style={styles.defaultLabel}>Default</Text>
+              <Text style={[styles.defaultLabel, { color: colors.primary }]}>Default</Text>
             )}
-          </TouchableOpacity>
+          </PlatformButton>
         </View>
       </View>
     );
@@ -73,35 +75,35 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
 
   return (
     <>
-      <DrawerContentScrollView {...props} style={styles.container}>
+      <DrawerContentScrollView {...props} style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Calendar</Text>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Calendar</Text>
         </View>
 
         {/* Add Calendar Button */}
-        <TouchableOpacity style={styles.addButton} onPress={handleAddCalendar}>
-          <Ionicons name="add" size={20} color="#007AFF" />
-          <Text style={styles.addButtonText}>Add Calendar</Text>
-        </TouchableOpacity>
+        <PlatformButton style={[styles.addButton, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '40' }]} onPress={handleAddCalendar}>
+          <Ionicons name="add" size={20} color={colors.primary} />
+          <Text style={[styles.addButtonText, { color: colors.primary }]}>Add Calendar</Text>
+        </PlatformButton>
 
         {/* Calendar List */}
         <View style={styles.calendarList}>
-          <Text style={styles.sectionTitle}>My Calendars</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>My Calendars</Text>
           {calendars.map(renderCalendarItem)}
         </View>
 
         {/* Statistics */}
-        <View style={styles.statsContainer}>
+        <View style={[styles.statsContainer, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{calendars.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>{calendars.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>
               {calendars.filter(cal => cal.isVisible).length}
             </Text>
-            <Text style={styles.statLabel}>Visible</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Visible</Text>
           </View>
         </View>
       </DrawerContentScrollView>
@@ -119,18 +121,15 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1A1A1A',
   },
   addButton: {
     flexDirection: 'row',
@@ -139,15 +138,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginHorizontal: 12,
     marginVertical: 8,
-    backgroundColor: '#F0F8FF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E3F2FD',
   },
   addButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#007AFF',
     marginLeft: 8,
   },
   calendarList: {
@@ -157,7 +153,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
     marginBottom: 8,
     marginTop: 8,
     paddingHorizontal: 4,
@@ -190,11 +185,9 @@ const styles = StyleSheet.create({
   calendarName: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#1A1A1A',
   },
   defaultLabel: {
     fontSize: 11,
-    color: '#007AFF',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -204,8 +197,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-    backgroundColor: '#F8F9FA',
     marginTop: 'auto',
   },
   statItem: {
