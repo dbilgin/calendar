@@ -10,6 +10,7 @@ import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-nav
 import { Ionicons } from '@expo/vector-icons';
 import { useCalendar } from '../contexts/CalendarContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Calendar } from '../types';
 import { CalendarFormModal } from './CalendarFormModal';
 import { PlatformButton } from './PlatformButton';
@@ -18,6 +19,7 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
   const { state, actions } = useCalendar();
   const { calendars } = state;
   const { colors } = useTheme();
+  const { signOut, user } = useAuth();
   
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [selectedCalendar, setSelectedCalendar] = useState<Calendar | undefined>();
@@ -43,6 +45,14 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
   const closeCalendarModal = () => {
     setCalendarModalVisible(false);
     setSelectedCalendar(undefined);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+    }
   };
 
   const renderCalendarItem = (calendar: Calendar) => {
@@ -105,6 +115,20 @@ export const CustomDrawerContent: React.FC<DrawerContentComponentProps> = (props
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Visible</Text>
           </View>
+        </View>
+
+        {/* User Info and Sign Out */}
+        <View style={[styles.userSection, { borderTopColor: colors.border }]}>
+          <Text style={[styles.userEmail, { color: colors.textSecondary }]} numberOfLines={1}>
+            {user?.email}
+          </Text>
+          <PlatformButton 
+            style={[styles.signOutButton, { backgroundColor: colors.error + '20', borderColor: colors.error + '40' }]} 
+            onPress={handleSignOut}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.error} />
+            <Text style={[styles.signOutButtonText, { color: colors.error }]}>Sign Out</Text>
+          </PlatformButton>
         </View>
       </DrawerContentScrollView>
 
@@ -211,5 +235,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
     marginTop: 2,
+  },
+  userSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    gap: 12,
+  },
+  userEmail: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  signOutButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 }); 

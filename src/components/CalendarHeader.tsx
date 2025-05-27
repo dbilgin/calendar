@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   useWindowDimensions,
   Platform,
-  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -16,6 +15,7 @@ import { formatDisplayDate, navigateDate } from "../utils/dateUtils";
 import { ViewMode } from "../types";
 import { HEADER_HEIGHT } from "../utils/constants";
 import { ViewModeDropdown } from "./ViewModeDropdown";
+import { UserDropdown } from "./UserDropdown";
 import { PlatformButton } from "./PlatformButton";
 
 interface CalendarHeaderProps {
@@ -27,34 +27,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 }) => {
   const { state, actions } = useCalendar();
   const { selectedDate, viewMode } = state;
-  const { colors, isDark, setTheme, theme } = useTheme();
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width >= 768;
   const isMobile = width < 768;
   const isVerySmall = width < 400;
 
-  // Animation for the WIP banner dots
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [pulseAnim]);
 
   const handlePrevious = () => {
     const newDate = navigateDate(selectedDate, "prev", viewMode);
@@ -74,28 +53,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     actions.setViewMode(mode);
   };
 
-  const handleThemeToggle = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
-  };
 
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light':
-        return 'sunny';
-      case 'dark':
-        return 'moon';
-      case 'system':
-        return 'phone-portrait';
-      default:
-        return 'sunny';
-    }
-  };
 
   const getDateDisplayText = () => {
     switch (viewMode) {
@@ -115,19 +73,6 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-      {/* Work in Progress Banner */}
-      <View style={styles.wipBanner}>
-        <View style={styles.wipOverlay} />
-        <View style={styles.wipContent}>
-          <Ionicons name="construct" size={16} color="#FFFFFF" />
-          <Text style={styles.wipText}>Work in Progress</Text>
-          <View style={styles.wipDots}>
-            <Animated.View style={[styles.wipDot, styles.wipDot1, { opacity: pulseAnim }]} />
-            <Animated.View style={[styles.wipDot, styles.wipDot2, { opacity: Animated.multiply(pulseAnim, 0.7) }]} />
-            <Animated.View style={[styles.wipDot, styles.wipDot3, { opacity: Animated.multiply(pulseAnim, 0.4) }]} />
-          </View>
-        </View>
-      </View>
 
       {/* Single Row with all elements */}
       <View style={styles.singleRow}>
@@ -159,17 +104,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </View>
         )}
 
-        {/* Right Section - Today, Plus, Theme, and View Mode */}
+        {/* Right Section - Today, Plus, View Mode, and User */}
         <View style={styles.rightSection}>
           {!isVerySmall && (
             <PlatformButton style={[styles.todayButton, { borderColor: colors.border }]} onPress={handleToday}>
               <Text style={[styles.todayButtonText, { color: colors.text }]}>Today</Text>
             </PlatformButton>
           )}
-          
-          <PlatformButton style={styles.actionButton} onPress={handleThemeToggle}>
-            <Ionicons name={getThemeIcon()} size={20} color={colors.text} />
-          </PlatformButton>
           
           <PlatformButton style={styles.actionButton} onPress={onAddEvent}>
             <Ionicons name="add" size={24} color={colors.text} />
@@ -181,6 +122,9 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             onModeChange={handleViewModeChange}
             isMobile={isMobile}
           />
+
+          {/* User Dropdown */}
+          <UserDropdown isMobile={isMobile} />
         </View>
       </View>
     </View>
@@ -189,7 +133,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 80, // Increased to account for the banner
+    paddingTop: 18,
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
@@ -268,68 +212,5 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 8,
     borderRadius: 8,
-  },
-
-  wipBanner: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 30,
-    backgroundColor: "#FF6B35",
-    zIndex: 1001,
-    justifyContent: "center",
-    alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "#E55A2B",
-    shadowColor: "#FF6B35",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 8,
-  },
-  wipOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
-    opacity: 0.3,
-  },
-  wipContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  wipText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  wipDots: {
-    flexDirection: "row",
-    gap: 3,
-  },
-  wipDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#FFFFFF",
-  },
-  wipDot1: {
-    opacity: 1,
-  },
-  wipDot2: {
-    opacity: 0.7,
-  },
-  wipDot3: {
-    opacity: 0.4,
   },
 });

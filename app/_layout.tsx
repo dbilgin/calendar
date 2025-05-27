@@ -2,37 +2,19 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import { CalendarProvider } from '../src/contexts/CalendarContext';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
-import { CustomDrawerContent } from '../src/components/CustomDrawerContent';
-
+import { AuthProvider } from '../src/contexts/AuthContext';
+import { AppContent } from '../src/components/AppContent';
 
 export default function Layout() {
-
   return (
     <ThemeProvider>
-      <CalendarProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <Drawer
-            drawerContent={(props) => <CustomDrawerContent {...props} />}
-            screenOptions={{
-              drawerStyle: {
-                width: 280,
-              },
-              headerShown: false, // We'll use our custom header
-              drawerType: 'front', // Always use overlay type
-              drawerPosition: 'left',
-              overlayColor: 'rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <Drawer.Screen
-              name="index"
-              options={{
-                drawerLabel: 'Calendar',
-                title: 'Calendar',
-              }}
-            />
-          </Drawer>
-        </GestureHandlerRootView>
-      </CalendarProvider>
+      <AuthProvider>
+        <CalendarProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AppContent />
+          </GestureHandlerRootView>
+        </CalendarProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 } 
