@@ -174,6 +174,8 @@ export const AuthScreen: React.FC = () => {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleAuth}
               />
             </View>
 
@@ -201,6 +203,8 @@ export const AuthScreen: React.FC = () => {
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={handleAuth}
                 />
               </View>
             )}
